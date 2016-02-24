@@ -21,6 +21,15 @@ cdef extern from "adabpr_inner.h":
 
     void adabpr_map_fast_update(double *U_pt, double *V_pt, long int *train_pt, double *train_wpt, long int num_train, long int **neg_items, int *neg_size, int num_factors, int gamma, double curr_theta, double reg_u, double reg_i)
 
+    void compute_auc_list_func(long int *pos, long int *neg, double *val, double *measure,
+        long int num_pos, long int num_neg)
+
+    void compute_auc_at_N_list_func(long int *pos, long int *neg, double *val, double *measure,
+        long int num_pos, long int num_neg, int N)
+
+    void compute_map_list_func(long int *pos_sort, long int *neg_sort, double *val, double *measure, long int num_pos, long int num_neg)
+
+    long int auc_computation_func(long int *pos, long int *neg, double *val, long int num_pos, long int num_neg)
 
 def mean_average_precision(pos_inx, neg_inx, val):
     pos_val, neg_val = val[pos_inx], val[neg_inx]
@@ -78,3 +87,24 @@ def adabpr_auc_train(model, ccf_inx, train_data, Tr, Tr_neg):
             else:
                 model.U[ccf_inx], model.V[ccf_inx] = UK, VK
                 break
+
+def compute_auc_list(pos_inx, neg_inx, val, measure):
+    num_pos, num_neg = len(pos_inx), len(neg_inx)
+    compute_auc_list_func(<long int*>np.PyArray_DATA(pos_inx), <long int*>np.PyArray_DATA(
+                    neg_inx), <double *>np.PyArray_DATA(val), <double *>np.PyArray_DATA(measure), num_pos, num_neg)
+
+def compute_auc_at_N_list(pos_inx, neg_inx, val, measure, N):
+    num_pos, num_neg = len(pos_inx), len(neg_inx)
+    compute_auc_at_N_list_func(<long int*>np.PyArray_DATA(pos_inx), <long int*>np.PyArray_DATA(
+                    neg_inx), <double *>np.PyArray_DATA(val), <double *>np.PyArray_DATA(measure), num_pos, num_neg, N)
+
+def compute_map_list(pos_sort, neg_sort, val, measure, num_pos, num_neg):
+    compute_map_list_func(<long int*>np.PyArray_DATA(pos_sort), <long int*>np.PyArray_DATA(
+                    neg_sort), <double *>np.PyArray_DATA(val), <double *>np.PyArray_DATA(measure), num_pos, num_neg)
+
+def auc_computation(np.ndarray[long int, ndim=1, mode="c"] pos_inx not None,
+                    np.ndarray[long int, ndim=1, mode="c"] neg_inx not None,
+                    np.ndarray[double, ndim=1, mode="c"] val not None):
+    num_pos, num_neg = len(pos_inx), len(neg_inx)
+    return auc_computation_func(<long int*>np.PyArray_DATA(pos_inx), <long int*>np.PyArray_DATA(
+                    neg_inx), <double *>np.PyArray_DATA(val), num_pos, num_neg)/float(num_pos*num_neg)

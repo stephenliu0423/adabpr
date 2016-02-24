@@ -8,12 +8,71 @@
 #include <stdlib.h>
 
 
+void compute_auc_list_func(long int *pos, long int *neg, double *val, double *measure, long int num_pos, long int num_neg){
+    
+    long int i, j;
+    double num;
+    for(i=0; i<num_pos; i++){
+        num = 0.0;
+        for(j=0; j<num_neg; j++){
+            if(val[pos[i]]>val[neg[j]])
+                num+=1.0;
+            // printf("%g,%g\n", val[pos[i]], val[neg[j]]);
+        }
+        measure[i]=num/num_neg;
+    }
+}
+
+void compute_auc_at_N_list_func(long int *pos, long int *neg, double *val, double *measure, long int num_pos, long int num_neg, int N){
+    
+    long int i, j;
+    double num;
+    for(i=0; i<num_pos; i++){
+        num = 0.0;
+        for(j=0; j<num_neg; j++){
+            if(val[pos[i]]<=val[neg[j]])
+                num+=1.0;
+            // printf("%g,%g\n", val[pos[i]], val[neg[j]]);
+        }
+        if(num>=N)
+            measure[i]=0.0;
+        else
+            measure[i]=1.0 - num/N;
+    }
+}
+
+
+void compute_map_list_func(long int *pos, long int *neg, double *val, double *measure, long int num_pos, long int num_neg){
+    
+    long int i, j;
+    double num;
+    for(i=0; i<num_pos; i++){
+        num = 0.0;
+        for(j=0; j<num_neg; j++){
+            if(val[pos[i]]<=val[neg[j]])
+                num += 1.0;
+            // printf("%g,%g\n", val[pos[i]], val[neg[j]]);
+        }
+        measure[i]=(i+1)/(i+num+1);
+    }
+}
+
+long int auc_computation_func(long int *pos, long int *neg, double *val, long int num_pos, long int num_neg){
+    long int i, j, num=0;
+    for(i=0; i<num_pos; i++){
+        for(j=0; j<num_neg; j++){
+            if(val[pos[i]]>val[neg[j]])
+                num++;
+        }
+    }
+    return num;
+}
+
 long int uniform_random_id(long int *list, int size){
     long int i;
     i = (rand() % size);
     return list[i];
 }
-
 
 double mean_average_precision_fast(double *pos_val, double *neg_val, long int num_pos, long int num_neg){
     long int i, j;

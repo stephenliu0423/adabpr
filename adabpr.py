@@ -1,11 +1,10 @@
 
 import pdb
-import BPR
 import time
 import numpy as np
 from collections import defaultdict
 from evaluation import precision, recall, nDCG
-from adabpr_inner import adabpr_auc_train
+from adabpr_inner import adabpr_auc_train, compute_auc_list, compute_map_list, compute_auc_at_N_list, mean_average_precision, auc_computation
 
 
 class AdaBPR:
@@ -34,7 +33,7 @@ class AdaBPR:
             for u in xrange(self.num_users):
                 pos_inx, num_pos = Tr[u]['items'], Tr[u]['num']
                 measure = np.zeros(num_pos)
-                BPR.compute_auc_list(pos_inx, Tr_neg[u]["items"], predict_val[u], measure)
+                compute_auc_list(pos_inx, Tr_neg[u]["items"], predict_val[u], measure)
                 for i, v in enumerate(measure):
                     ii = self.index_dict[u][pos_inx[i]]
                     accuracy[ii] = v
@@ -46,7 +45,7 @@ class AdaBPR:
                 jj = np.argsort(predict_val[u][neg_inx])[::-1]
                 measure = np.zeros(num_pos)
                 pos_sort, neg_sort = pos_inx[ii], neg_inx[jj]
-                BPR.compute_map_list(pos_sort, neg_sort, predict_val[u], measure, num_pos, num_neg)
+                compute_map_list(pos_sort, neg_sort, predict_val[u], measure, num_pos, num_neg)
                 for i, v in enumerate(measure):
                     kk = self.index_dict[u][pos_sort[i]]
                     accuracy[kk] = v
@@ -54,7 +53,7 @@ class AdaBPR:
             for u in xrange(self.num_users):
                 pos_inx, num_pos = Tr[u]['items'], Tr[u]['num']
                 measure = np.zeros(num_pos)
-                BPR.compute_auc_at_N_list(pos_inx, Tr_neg[u]["items"], predict_val[u], measure, N)
+                compute_auc_at_N_list(pos_inx, Tr_neg[u]["items"], predict_val[u], measure, N)
                 for i, v in enumerate(measure):
                     ii = self.index_dict[u][pos_inx[i]]
                     accuracy[ii] = v
@@ -117,8 +116,8 @@ class AdaBPR:
             # compute map and AUC
             pos_inx = np.array(list(A))
             neg_inx = np.array(list(B))
-            map_user = BPR.mean_average_precision(pos_inx, neg_inx, val)
-            auc_user = BPR.auc_computation(pos_inx, neg_inx, val)
+            map_user = mean_average_precision(pos_inx, neg_inx, val)
+            auc_user = auc_computation(pos_inx, neg_inx, val)
             ndcg += ndcg_user
             map_value += map_user
             auc_value += auc_user

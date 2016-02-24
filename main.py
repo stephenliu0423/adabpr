@@ -1,4 +1,5 @@
 
+import time
 import numpy as np
 from adabpr import AdaBPR
 from functions import *
@@ -16,8 +17,9 @@ if recommender == 'adabpr':
     train_data, Tr, Tr_neg, Te = data_process(train_file, test_file)
     for x in np.arange(-6, -5):
         for y in np.arange(-10, -9):
+            t1 = time.clock()
             cmd_str = 'Dataset:'+dataset+'\n'
-            ada_bpr = AdaBPR(num_factors=10, lmbda=10**(-5), theta=2**(-7), num_models=30, metric='MAP', max_iter=30, loss_code=3)
+            ada_bpr = AdaBPR(num_factors=10, lmbda=10**(-5), theta=2**(-7), num_models=1, metric='MAP', max_iter=100, loss_code=3)
             cmd_str += str(ada_bpr)
             print cmd_str
             ada_bpr.fix_model(train_data, Tr, Tr_neg, Te)
@@ -27,3 +29,4 @@ if recommender == 'adabpr':
             results += ' '.join(['R@%d:%.6f' % (positions[i], rec[i]) for i in xrange(len(positions))])
             inf.write(cmd_str+'\n'+results+'\n')
             print results
+            print "time:%s" % (time.clock() - t1)
